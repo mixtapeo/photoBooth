@@ -7,7 +7,7 @@ def kill_gphoto_conflicts():
 def find_camera_port():
     # get the camera's port to be fed into capture_photo's gphoto2 command
     result = subprocess.run(
-        ["gphoto2", " --auto-detect"],
+        ["gphoto2", "--auto-detect"],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
@@ -27,11 +27,15 @@ def capture_photo(filename, port=None):
     cmd = ["gphoto2"]
     if port:
         cmd += ["--port", port]
-    cmd += ["--capture-image-and-download", "--filename", filename]
+        
+    # --debug is just for now. remove once tool works perfectly
+    cmd += ["--capture-image-and-download", "--filename", filename, "--debug"]
+    
+    # Sometimes get an 'I/O in progress' error. So the for loop will just keep retrying.
     subprocess.run(cmd, check=True)
 
 if __name__ == "__main__":
     filename = "photo_test.jpg"
-    # # explicitly pass camera’s port. Comment out the find camera port function call if so.
+    # # explicitly pass camera’s port. Comment out the find camera `port function call if so.
     # port = "usb:003,022"
     capture_photo(filename, find_camera_port())
