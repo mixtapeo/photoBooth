@@ -4,12 +4,63 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.multipart import MIMEMultipart
 import time
+import cameraOperation
+import re
 
-def capture_photo(filename):
-    os.system(f"gphoto2 --capture-image-and-download --filename {filename}")
+def main():
+    clear = lambda: os.system('clear')
+    
+    #clear console to remove previous uses logs
+    clear()
+    print("Welcome to the Photo Booth!")
+    #Todo can ask if we want to keep it? might be cool for media stuff
+    print("[don't worry, your pic isnt stored after we email it to you.]\n")
+    
+    # Use regex to make sure its an email
+    while True:
+        email = input("email address: ")
+        if re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", email):
+            break
+        else:
+            print("that email doesn't look valid to me.")
+    
+    filename = f"photo_{int(time.time())}-{email}.jpg"
+    
+    # ask user how long they want to wait
+    while True:
+        try:
+            userIn = int(input("how long do you need? (timer in seconds): "))
+            break
+        except ValueError:
+            print("integer please.")
+    
+    if userIn >= 40:
+        # no one needs this long
+        print("way too long of a timer")
+    
+    else:
+        # Countdown for userIn
+        #TODO add flash blinking for timer??
+        for i in range(userIn, 0, -1):
+            print(f"Smile! Taking photo in {i}...")
+            time.sleep(1)
+        
+        cameraOperation.capture_photo(filename, cameraOperation.find_camera_port())
+        
+        print(f"Photo captured! Sending to your email: {email}...")
+        
+        try:
+            send_email(filename, email)
+        except:
+            print("something happened. contact someone from dev.")
+            
+        print("Email sent! Thank you for stopping by! :)")
+        
+        # delete the local file after sending
+        os.remove(filename)
 
-def send_email(image_path, recipient):\
-    # Email configuration (update with your SMTP details)
+# add email stuff
+def send_email(image_path: str, recipient: str):
     smtp_server = "smtp.example.com"
     smtp_port = 587
     username = "your_email@example.com"
@@ -32,27 +83,6 @@ def send_email(image_path, recipient):\
         server.login(username, password)
         server.send_message(msg)
 
-def main():
-    print("Welcome to the Photo Booth!")
-    email = input("Enter your email address: ")
-    
-    filename = f"photo_{int(time.time())}.jpg"
-    
-    print("Smile! Taking photo in 3...")
-    time.sleep(1)
-    print("2...")
-    time.sleep(1)
-    print("1...")
-    time.sleep(1)
-    
-    capture_photo(filename)
-    print("Photo captured! Sending to your email...")
-    
-    send_email(filename, email)
-    print("Email sent! Thank you!")
-    
-    # Optional: Delete the local file after sending
-    os.remove(filename)
-
 if __name__ == "__main__":
-    main()
+    while (True):
+        main()

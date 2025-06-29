@@ -1,5 +1,5 @@
 import subprocess
-
+# sudo apt-get install gphoto2
 def kill_gphoto_conflicts():
     for proc in ("gvfs-gphoto2-volume-monitor", "gvfsd-gphoto2"):
         subprocess.run(["pkill", "-f", proc], stderr=subprocess.DEVNULL)
@@ -22,16 +22,25 @@ def find_camera_port():
             return parts[-1]
     raise Exception("Can't find port. Either add as a constant or re-run script.")
 
-def capture_photo(filename, port=None):
+from typing import Optional
+
+def capture_photo(filename: str, port: Optional[str] = None):
     kill_gphoto_conflicts()
     cmd = ["gphoto2"]
     if port:
         cmd += ["--port", port]
         
     # --debug is just for now. remove once tool works perfectly
-    cmd += ["--capture-image-and-download", "--filename", filename, "--debug"]
+    cmd += ["--capture-image-and-download", "--filename", filename]
     
     # Sometimes get an 'I/O in progress' error. So the for loop will just keep retrying.
+    # NO IDEA IF IM CURSED, BUT IF SUBJECT IS CLOSE TO THE CAMERA (0-5CM) THE CAMERA WILL THROW:
+    #     *** Error ***              
+    # Canon EOS Full-Press failed (0x2019: PTP Device Busy)
+    # ERROR: Could not capture image.
+    # ERROR: Could not capture.
+    # *** Error (-110: 'I/O in progress') ***   
+    # idk why
     subprocess.run(cmd, check=True)
 
 if __name__ == "__main__":
